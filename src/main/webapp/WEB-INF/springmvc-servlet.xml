@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:websocket="http://www.springframework.org/schema/websocket"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 	http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx        http://www.springframework.org/schema/tx/spring-tx.xsd
+                http://www.springframework.org/schema/context 	http://www.springframework.org/schema/context/spring-context.xsd
+                http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket.xsd
+		http://www.springframework.org/schema/mvc 	http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+        <context:component-scan base-package="br.com.jopss.springasync.web"/>
+        <context:annotation-config />
+        
+        <mvc:annotation-driven  />
+        <mvc:default-servlet-handler/>
+        
+        <bean id="urlMapping" class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping">
+                <property name="caseSensitive" value="true" />
+        </bean>
+        
+        <!-- ## JSP RESOLVER ## -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<!-- ## MESSAGE RESOLVER ## -->
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="defaultEncoding" value="utf-8" />
+		<property name="basename" value="WEB-INF/classes/messages" />
+	</bean>
+
+	<!-- ## MULTIPART RESOLVER ## -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+        
+</beans>
