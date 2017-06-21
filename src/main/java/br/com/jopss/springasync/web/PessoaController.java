@@ -32,7 +32,9 @@ public class PessoaController {
         
         @RequestMapping(value = "/assinc", method = RequestMethod.GET)
         public String assinc(Model m, HttpSession session){
-                CompletableFuture<AsyncForm>  promisse = importacaoService.importarAsync();
+                StringBuilder log = new StringBuilder();
+                this.addSessaoLog(session, log);
+                CompletableFuture<AsyncForm>  promisse = importacaoService.importarAsync(log);
                 this.addSessaoPromisse(session, promisse);
                 return "assinc";
         }
@@ -44,16 +46,24 @@ public class PessoaController {
                 if (promisse == null) {
 			return null;
 		} else {
-			return promisse.getNow(new AsyncForm(importacaoService.getLog()));
+			return promisse.getNow(new AsyncForm(this.getSessaoLog(session)));
 		}
 	}
         
+        private void addSessaoLog(HttpSession session, StringBuilder log) {
+		session.setAttribute("LOG_IMPORTACAO", log);
+	}
+        
+        private StringBuilder getSessaoLog(HttpSession session) {
+		return (StringBuilder) session.getAttribute("LOG_IMPORTACAO");
+	}
+        
         private void addSessaoPromisse(HttpSession session, CompletableFuture<AsyncForm> promisse) {
-		session.setAttribute("FUTURE_IMPORTACAO_USUARIO", promisse);
+		session.setAttribute("FUTURE_IMPORTACAO", promisse);
 	}
 
 	private CompletableFuture<AsyncForm> getSessaoPromisse(HttpSession session) {
-		return (CompletableFuture<AsyncForm>) session.getAttribute("FUTURE_IMPORTACAO_USUARIO");
+		return (CompletableFuture<AsyncForm>) session.getAttribute("FUTURE_IMPORTACAO");
 	}
         
 }

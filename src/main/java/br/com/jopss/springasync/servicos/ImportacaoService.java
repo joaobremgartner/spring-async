@@ -26,30 +26,21 @@ public class ImportacaoService {
         @PersistenceContext
         private EntityManager em;
         
-        private StatelessSession session;
-        private StringBuilder log = new StringBuilder();
-
-        public StringBuilder getLog() {
-                return log;
-        }
-        
-        private StatelessSession getSession(){
-                if(session == null || !session.isOpen()){
-                        session = em.getEntityManagerFactory().createEntityManager().unwrap(Session.class).getSessionFactory().openStatelessSession();
-                }
-                return session;
+        private StatelessSession createSession(){
+                return em.getEntityManagerFactory().createEntityManager().unwrap(Session.class).getSessionFactory().openStatelessSession();
         }
         
         public List<Pessoa> importarSincronizado() {
-                Transaction tx = getSession().beginTransaction();
+                StatelessSession session = this.createSession();
+                Transaction tx = session.beginTransaction();
                 System.out.println("----------------------------");
                 System.out.println(" IMPORTACAO SINCRONIZADA :( ");
                 System.out.println("----------------------------");
-                List<Pessoa> pessoas = this.importar();
+                List<Pessoa> pessoas = this.importar(session);
                 
                 System.out.println("Gravando lista de pessoas, aguarde...");
                 for(Pessoa p : pessoas){
-                        Query nat = getSession().createNativeQuery("INSERT INTO Pessoa(id,dataCriacao,nome,tipoPessoa) VALUES(?,?,?,?);");
+                        Query nat = session.createNativeQuery("INSERT INTO Pessoa(id,dataCriacao,nome,tipoPessoa) VALUES(?,?,?,?);");
                         nat.setParameter(1, p.getId());
                         nat.setParameter(2, p.getDataCriacao(), TemporalType.TIMESTAMP);
                         nat.setParameter(3, p.getNome());
@@ -60,26 +51,27 @@ public class ImportacaoService {
 
                 System.out.println("Efetuando commit da transacao BD, aguarde...");
                 tx.commit();
-                getSession().close();
+                session.close();
                 System.out.println("--> Commit ok!");
                 System.out.println("-------------------------");
                 return pessoas;
         }
 
         @Async
-        public CompletableFuture<AsyncForm> importarAsync() {
-                log = new StringBuilder();
-                
-                Transaction tx = getSession().beginTransaction();
+        public CompletableFuture<AsyncForm> importarAsync(StringBuilder log) {
+                StatelessSession session = this.createSession();
+                Transaction tx = session.beginTransaction();
                 System.out.println("--------------------------");
                 System.out.println(" IMPORTACAO ASSINCRONA :) ");
                 System.out.println("--------------------------");
-                List<Pessoa> pessoas = this.importar();
+                log.append("Carregando dados, aguarde...").append("<br>");
+                List<Pessoa> pessoas = this.importar(session);
+                log.append("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size()).append("<br>");
                 System.out.println("--------------------------");
                 
                 log.append("Gravando lista de pessoas, aguarde...").append("<br>");
                 for(Pessoa p : pessoas){
-                        Query nat = getSession().createNativeQuery("INSERT INTO Pessoa(id,dataCriacao,nome,tipoPessoa) VALUES(?,?,?,?);");
+                        Query nat = session.createNativeQuery("INSERT INTO Pessoa(id,dataCriacao,nome,tipoPessoa) VALUES(?,?,?,?);");
                         nat.setParameter(1, p.getId());
                         nat.setParameter(2, p.getDataCriacao(), TemporalType.TIMESTAMP);
                         nat.setParameter(3, p.getNome());
@@ -90,7 +82,7 @@ public class ImportacaoService {
 
                 log.append("Efetuando commit da transacao BD, aguarde...").append("<br>");
                 tx.commit();
-                getSession().close();
+                session.close();
                 log.append("--> Commit ok!").append("<br>");
                 
                 AsyncForm form = new AsyncForm();
@@ -99,18 +91,14 @@ public class ImportacaoService {
                 return CompletableFuture.completedFuture(form);
         }
         
-        private List<Pessoa> importar() {
+        private List<Pessoa> importar(StatelessSession session) {
                 System.out.println("Removendo todas as pessoas...");
-                log.append("Removendo todas as pessoas...").append("<br>");
-                getSession().createNativeQuery("DELETE FROM Pessoa;").executeUpdate();
+                session.createNativeQuery("DELETE FROM Pessoa;").executeUpdate();
                 System.out.println("--> Remocao ok!");
-                log.append("--> Remocao ok!").append("<br>");
 
                 System.out.println("Carregando CSV pessoas...");
-                log.append("Carregando CSV pessoas...").append("<br>");
                 List<Pessoa> pessoas = this.carregarPessoas();
                 System.out.println("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size());
-                log.append("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size()).append("<br>");;
 
                 return pessoas;
         }
