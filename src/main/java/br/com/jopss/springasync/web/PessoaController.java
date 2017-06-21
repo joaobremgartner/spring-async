@@ -2,7 +2,8 @@ package br.com.jopss.springasync.web;
 
 import br.com.jopss.springasync.modelos.Pessoa;
 import br.com.jopss.springasync.servicos.ImportacaoService;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +19,13 @@ public class PessoaController {
         
         @RequestMapping(value = "/sincronizada", method = RequestMethod.GET)
         public String sincronizada(Model m){
-                Set<Pessoa> pessoas = importacaoService.importarSincronizado();
-                m.addAttribute("pessoas",pessoas);
+                List<Pessoa> pessoas = importacaoService.importarSincronizado();
+                
+                System.out.println("Commit realizado!");
+                System.out.println("-------------------------");
+                
+                m.addAttribute("quantidade",pessoas.size());
+                m.addAttribute("pessoas",pessoas.subList(0, 100));
                 return "sincronizada";
         }
         

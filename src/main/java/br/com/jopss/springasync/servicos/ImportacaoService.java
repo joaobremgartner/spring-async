@@ -4,11 +4,10 @@ import br.com.jopss.springasync.modelos.Pessoa;
 import br.com.jopss.springasync.servicos.repositorio.PessoaRepository;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,24 +20,24 @@ public class ImportacaoService {
         private PessoaRepository pessoaRepository;
 
         @Transactional
-        public Set<Pessoa> importarSincronizado() {
+        public List<Pessoa> importarSincronizado() {
                 System.out.println("-------------------------");
                 System.out.println(" IMPORTACAO SINCRONIZADA ");
                 System.out.println("-------------------------");
 
-                System.out.print("Removendo todas as pessoas...");
+                System.out.println("Removendo todas as pessoas...");
                 pessoaRepository.deleteAll();
-                System.out.println(" ok!");
+                System.out.println("Remocao ok!");
 
                 System.out.println("Carregando CSV pessoas...");
-                Set<Pessoa> pessoas = this.carregarPessoas();
+                List<Pessoa> pessoas = this.carregarPessoas();
                 System.out.println("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size());
 
-                System.out.print("Gravando lista de pessoas...");
+                System.out.println("Gravando lista de pessoas, aguarde...");
                 pessoaRepository.save(pessoas);
-                System.out.println(" ok!");
+                System.out.println("Gravacao ok!");
 
-                System.out.println("-------------------------");
+                System.out.println("Efetuando commit da transacao BD, aguarde...");
                 return pessoas;
         }
 
@@ -47,10 +46,9 @@ public class ImportacaoService {
         }
 
         //1,2013-11-11 00:00:00,SEBASTIANA M DE CARVALHO,FISICA
-        private Set<Pessoa> carregarPessoas() {
-                Set<Pessoa> lista = new HashSet<>();
+        private List<Pessoa> carregarPessoas() {
+                List<Pessoa> lista = new ArrayList<>();
                 try {
-
                         Scanner s = new Scanner(this.getClass().getResourceAsStream("/backup_pessoas.csv"));
                         s.useDelimiter(Pattern.compile("(\\n)"));
 
@@ -59,22 +57,17 @@ public class ImportacaoService {
                                 count++;
                                 String linha = s.next();
 
+                                //somente para log.
                                 if (count % 10000 == 0) {
                                         System.out.println(count + " linhas importadas.");
                                 }
+                                
                                 if (linha != null && !linha.isEmpty()) {
                                         String[] dados = linha.split(",");
-
-                                        Date data = null;
-                                        try {
-                                                data = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dados[1]);
-                                        } catch (ParseException e) {
-                                                data = new SimpleDateFormat("yyyy-MM-dd").parse(dados[1]);
-                                        }
-
+                                        
                                         Pessoa p = new Pessoa();
                                         p.setId(dados[0]);
-                                        p.setDataCriacao(data);
+                                        p.setDataCriacao( new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dados[1]) );
                                         p.setNome(dados[2]);
                                         p.setTipoPessoa(dados[3]);
 
