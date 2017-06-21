@@ -7,13 +7,7 @@
       <property name="hibernate.show_sql" value="false"/>
       <property name="hibernate.format_sql" value="true"/>
       <property name="hibernate.use_sql_comments" value="true"/>
-      
-      <property name="hibernate.transaction.flush_before_completion" value="true"/>
-      <property name="hibernate.autocommit" value="true"/>
       <property name="hibernate.jdbc.batch_size" value="100"/>
-      
-      <property name="hibernate.id.new_generator_mappings" value="false"/>
-      <property name="hibernate.jdbc.use_scrollable_resultset" value="false"/>
     </properties>
   </persistence-unit>
 </persistence>

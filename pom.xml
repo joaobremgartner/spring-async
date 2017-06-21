@@ -19,13 +19,25 @@
                 <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
         </properties>
         
-        <repositories>
+        <!--        <repositories>
                 <repository>
                         <id>sonatype.org</id>
                         <name>sonatype.org</name>
                         <url>https://oss.sonatype.org/content/repositories/releases/</url>
                 </repository>
+        </repositories>-->
+        <repositories>
+                <repository>
+                        <id>nexus</id>
+                        <url>http://siscondjdev.bbtecno.com.br:7080/nexus/content/groups/public/</url>
+                </repository>
         </repositories>
+        <pluginRepositories>
+                <pluginRepository>
+                        <id>nexus</id>
+                        <url>http://siscondjdev.bbtecno.com.br:7080/nexus/content/groups/public/</url>
+                </pluginRepository>
+        </pluginRepositories>
         
         <dependencies>
                 <!-- WEB -->

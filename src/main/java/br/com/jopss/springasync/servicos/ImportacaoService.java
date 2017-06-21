@@ -1,48 +1,118 @@
 package br.com.jopss.springasync.servicos;
 
 import br.com.jopss.springasync.modelos.Pessoa;
-import br.com.jopss.springasync.servicos.repositorio.PessoaRepository;
+import br.com.jopss.springasync.web.form.AsyncForm;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TemporalType;
+import org.hibernate.Session;
+import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ImportacaoService {
 
-        @Autowired
-        private PessoaRepository pessoaRepository;
+        @PersistenceContext
+        private EntityManager em;
+        
+        private StatelessSession session;
+        private StringBuilder log = new StringBuilder();
 
-        @Transactional
+        public StringBuilder getLog() {
+                return log;
+        }
+        
+        private StatelessSession getSession(){
+                if(session == null || !session.isOpen()){
+                        session = em.getEntityManagerFactory().createEntityManager().unwrap(Session.class).getSessionFactory().openStatelessSession();
+                }
+                return session;
+        }
+        
         public List<Pessoa> importarSincronizado() {
-                System.out.println("-------------------------");
-                System.out.println(" IMPORTACAO SINCRONIZADA ");
-                System.out.println("-------------------------");
-
-                System.out.println("Removendo todas as pessoas...");
-                pessoaRepository.deleteAll();
-                System.out.println("Remocao ok!");
-
-                System.out.println("Carregando CSV pessoas...");
-                List<Pessoa> pessoas = this.carregarPessoas();
-                System.out.println("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size());
-
+                Transaction tx = getSession().beginTransaction();
+                System.out.println("----------------------------");
+                System.out.println(" IMPORTACAO SINCRONIZADA :( ");
+                System.out.println("----------------------------");
+                List<Pessoa> pessoas = this.importar();
+                
                 System.out.println("Gravando lista de pessoas, aguarde...");
-                pessoaRepository.save(pessoas);
-                System.out.println("Gravacao ok!");
+                for(Pessoa p : pessoas){
+                        Query nat = getSession().createNativeQuery("INSERT INTO Pessoa(id,dataCriacao,nome,tipoPessoa) VALUES(?,?,?,?);");
+                        nat.setParameter(1, p.getId());
+                        nat.setParameter(2, p.getDataCriacao(), TemporalType.TIMESTAMP);
+                        nat.setParameter(3, p.getNome());
+                        nat.setParameter(4, p.getTipoPessoa());
+                        nat.executeUpdate();
+                }
+                System.out.println("--> Gravacao ok!");
 
                 System.out.println("Efetuando commit da transacao BD, aguarde...");
+                tx.commit();
+                getSession().close();
+                System.out.println("--> Commit ok!");
+                System.out.println("-------------------------");
                 return pessoas;
         }
 
-        public void importarAsync() {
+        @Async
+        public CompletableFuture<AsyncForm> importarAsync() {
+                log = new StringBuilder();
+                
+                Transaction tx = getSession().beginTransaction();
+                System.out.println("--------------------------");
+                System.out.println(" IMPORTACAO ASSINCRONA :) ");
+                System.out.println("--------------------------");
+                List<Pessoa> pessoas = this.importar();
+                System.out.println("--------------------------");
+                
+                log.append("Gravando lista de pessoas, aguarde...").append("<br>");
+                for(Pessoa p : pessoas){
+                        Query nat = getSession().createNativeQuery("INSERT INTO Pessoa(id,dataCriacao,nome,tipoPessoa) VALUES(?,?,?,?);");
+                        nat.setParameter(1, p.getId());
+                        nat.setParameter(2, p.getDataCriacao(), TemporalType.TIMESTAMP);
+                        nat.setParameter(3, p.getNome());
+                        nat.setParameter(4, p.getTipoPessoa());
+                        nat.executeUpdate();
+                }
+                log.append("--> Gravacao ok!").append("<br>");
 
+                log.append("Efetuando commit da transacao BD, aguarde...").append("<br>");
+                tx.commit();
+                getSession().close();
+                log.append("--> Commit ok!").append("<br>");
+                
+                AsyncForm form = new AsyncForm();
+                form.addLog("Importado "+pessoas.size()+" itens. Resultado dos 100 primeiros abaixo.");
+                form.setPessoas(pessoas);
+                return CompletableFuture.completedFuture(form);
+        }
+        
+        private List<Pessoa> importar() {
+                System.out.println("Removendo todas as pessoas...");
+                log.append("Removendo todas as pessoas...").append("<br>");
+                getSession().createNativeQuery("DELETE FROM Pessoa;").executeUpdate();
+                System.out.println("--> Remocao ok!");
+                log.append("--> Remocao ok!").append("<br>");
+
+                System.out.println("Carregando CSV pessoas...");
+                log.append("Carregando CSV pessoas...").append("<br>");
+                List<Pessoa> pessoas = this.carregarPessoas();
+                System.out.println("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size());
+                log.append("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size()).append("<br>");;
+
+                return pessoas;
         }
 
         //1,2013-11-11 00:00:00,SEBASTIANA M DE CARVALHO,FISICA
