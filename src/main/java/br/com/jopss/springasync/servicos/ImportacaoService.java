@@ -20,6 +20,13 @@ import org.hibernate.Transaction;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+/**
+ * Classe que faz a importação de dados do CSV.
+ * A persistencia foi feita com query nativa e transação manual 
+ * por questão de performace, já que o CSV com 1.5mi de dados.
+ * 
+ * @author jopss
+ */
 @Service
 public class ImportacaoService {
 
@@ -166,9 +173,7 @@ public class ImportacaoService {
                         }
                 } catch (ParseException e) {
                         throw new RuntimeException(e);
-                } catch (NoSuchElementException e) {
-                        //nope
-                }
+                } 
                 return lista;
         }
 }
