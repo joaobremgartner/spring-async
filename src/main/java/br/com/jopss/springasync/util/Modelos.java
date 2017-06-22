@@ -13,10 +13,6 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 /**
  * Classe mae de todas os modelos. Auxilia na estrategia de banco de dados,
  * escondendo objetos tecnicos dos modelos, ou acoes simples e repetitivas.
- *
- * A criacao do EntityManager e das Transacoes estao gerenciados manualmente (ao
- * inves de delegar ao container), pois os modelos nao sao gerenciados pelo
- * Spring.
  */
 @MappedSuperclass
 @JsonAutoDetect(fieldVisibility=Visibility.ANY, getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE)

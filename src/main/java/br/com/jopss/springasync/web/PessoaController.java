@@ -6,7 +6,6 @@ import br.com.jopss.springasync.web.form.AsyncForm;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,6 +21,11 @@ public class PessoaController {
         @Autowired
         private ImportacaoService importacaoService;
         
+        /**
+         * Executa a importacao pela chamada sincrona normal.
+         * @param m Model
+         * @return String com a pagina.
+         */
         @RequestMapping(value = "/sincronizada", method = RequestMethod.GET)
         public String sincronizada(Model m){
                 List<Pessoa> pessoas = importacaoService.importarSincronizado();
@@ -30,6 +34,12 @@ public class PessoaController {
                 return "sincronizada";
         }
         
+        /**
+         * Executa a importacao pela chamada a um metodo assicrono.
+         * @param m Model
+         * @param session HttpSession
+         * @return String com a pagina.
+         */
         @RequestMapping(value = "/assinc", method = RequestMethod.GET)
         public String assinc(Model m, HttpSession session){
                 StringBuilder log = new StringBuilder();
@@ -39,6 +49,15 @@ public class PessoaController {
                 return "assinc";
         }
         
+        /**
+         * Metodo chamado pelo Javascript para verificar conclusao do Async.
+         * Caso ainda nao tenha concluido, retorna o log de execucao.
+         * 
+         * @param session HttpSession
+         * @return AsyncForm
+         * @throws InterruptedException
+         * @throws ExecutionException 
+         */
 	@ResponseBody
 	@RequestMapping(value = "/assinc/verificar", method = RequestMethod.GET)
 	public AsyncForm verificarAssinc(HttpSession session) throws InterruptedException, ExecutionException {
@@ -46,6 +65,7 @@ public class PessoaController {
                 if (promisse == null) {
 			return null;
 		} else {
+                        //caso o Async ainda nao tenha concluido, este metodo cria como retorno o parametro passado.
 			return promisse.getNow(new AsyncForm(this.getSessaoLog(session)));
 		}
 	}

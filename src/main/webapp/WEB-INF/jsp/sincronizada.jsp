@@ -3,7 +3,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <body>
-        <h3>Importação Sincronizada Concluída.</h3>
+        <h3>Importação Sincronizada Concluída. Logs gerados no servidor.</h3>
         <p>
                 Importado ${quantidade} itens. Resultado dos 100 primeiros abaixo.</h3>
         </p>

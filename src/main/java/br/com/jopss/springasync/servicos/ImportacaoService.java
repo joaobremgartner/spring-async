@@ -26,10 +26,20 @@ public class ImportacaoService {
         @PersistenceContext
         private EntityManager em;
         
+        /**
+         * Transforma o EntityManager com StatelessSession, por performace.
+         * @return StatelessSession
+         */
         private StatelessSession createSession(){
                 return em.getEntityManagerFactory().createEntityManager().unwrap(Session.class).getSessionFactory().openStatelessSession();
         }
         
+        /**
+         * Metodo sincrono para importacao de pessoas, gravando no banco de dados.
+         * Gera log no servidor (System.out).
+         * 
+         * @return List<Pessoa> com as pessoas gravadas no banco de dados.
+         */
         public List<Pessoa> importarSincronizado() {
                 StatelessSession session = this.createSession();
                 Transaction tx = session.beginTransaction();
@@ -57,6 +67,13 @@ public class ImportacaoService {
                 return pessoas;
         }
 
+        /**
+         * Metodo assincrono para importacao de pessoas, gravando no banco de dados.
+         * Gera log no StringBuilder, para o controlador poder devolver ao JSP o log.
+         * 
+         * @param log StringBuilder
+         * @return List<Pessoa> com as pessoas gravadas no banco de dados.
+         */
         @Async
         public CompletableFuture<AsyncForm> importarAsync(StringBuilder log) {
                 StatelessSession session = this.createSession();
@@ -64,6 +81,7 @@ public class ImportacaoService {
                 System.out.println("--------------------------");
                 System.out.println(" IMPORTACAO ASSINCRONA :) ");
                 System.out.println("--------------------------");
+                
                 log.append("Carregando dados, aguarde...").append("<br>");
                 List<Pessoa> pessoas = this.importar(session);
                 log.append("TOTAL DE PESSOAS IMPORTADAS: "+pessoas.size()).append("<br>");
@@ -91,6 +109,11 @@ public class ImportacaoService {
                 return CompletableFuture.completedFuture(form);
         }
         
+        /**
+         * Tenta remover todas as pessoas do banco de dados e reimporta o arquivo CSV.
+         * @param session StatelessSession
+         * @return List<Pessoa> pessoas importadas no CSV.
+         */
         private List<Pessoa> importar(StatelessSession session) {
                 System.out.println("Removendo todas as pessoas...");
                 session.createNativeQuery("DELETE FROM Pessoa;").executeUpdate();
@@ -103,7 +126,16 @@ public class ImportacaoService {
                 return pessoas;
         }
 
-        //1,2013-11-11 00:00:00,SEBASTIANA M DE CARVALHO,FISICA
+        /**
+         * Importa as pessoas do arquivo CSV, gerando uma lista de objetos. Nao grava no banco de dados ainda.
+         * Exemplo de linha dentro do arquivo:
+         * <br>
+         * <ul>
+         * <li>1,2013-11-11 00:00:00,SEBASTIANA M DE CARVALHO,FISICA</li>
+         * </ul>
+         * 
+         * @return List<Pessoa> pessoas importadas no CSV.
+         */
         private List<Pessoa> carregarPessoas() {
                 List<Pessoa> lista = new ArrayList<>();
                 try {
