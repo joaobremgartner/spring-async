@@ -3,11 +3,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
        xmlns:p="http://www.springframework.org/schema/p"
        xmlns:context="http://www.springframework.org/schema/context" 
-       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:task="http://www.springframework.org/schema/task" 
        xsi:schemaLocation="
                 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
-                http://www.springframework.org/schema/tx        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
                 http://www.springframework.org/schema/task      http://www.springframework.org/schema/task/spring-task.xsd" >
 
@@ -16,12 +14,10 @@
                 <property name="localOverride" value="true"/>
                 <property name="locations">
                         <list>
-                                <value>classpath:env/environment_DESENVOLVIMENTO.properties</value>
-                                <value>classpath:env/environment_${CONFIG_SISTEMA}.properties</value>
+                                <value>classpath:env/environment.properties</value>
                         </list>
                 </property>
         </bean>
-	
         <bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
                 <property name="ignoreResourceNotFound" value="true" />
                 <property name="ignoreUnresolvablePlaceholders" value="true" />
@@ -32,6 +28,7 @@
         <context:component-scan base-package="br.com.jopss.springasync.servicos"/>
         <context:annotation-config />
 
+        <!-- configuracao do @Async -->
         <task:annotation-driven executor="asyncExecutor"/>
         <task:executor id="asyncExecutor" pool-size="2" queue-capacity="500"/>
 </beans>
