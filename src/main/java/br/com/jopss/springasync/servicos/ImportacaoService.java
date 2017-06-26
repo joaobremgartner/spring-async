@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
@@ -152,7 +151,7 @@ public class ImportacaoService {
                         int count = 0;
                         while (s.hasNextLine()) {
                                 count++;
-                                String linha = s.next();
+                                String linha = s.nextLine();
 
                                 //somente para log.
                                 if (count % 10000 == 0) {
